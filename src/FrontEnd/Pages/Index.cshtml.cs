@@ -10,19 +10,33 @@ public class IndexModel(ILogger<IndexModel> logger,
 {
     [BindProperty]
     public SubmitViewModel Model { get; set; }
-    
+
     public void OnGet()
     {
 
     }
 
-    public IActionResult OnPost()
+    public IActionResult OnPost(string action)
     {
+        if (!ModelState.IsValid)
+        {
+            return Page();
+        }
+
         var routingKey = Model.Action == "Booking" ? "tour.booked" : "tour.cancelled";
-        var message = $"Name: {Model.Name}, Email: {Model.Email}, Tour: {Model.Tour}, Action: {(Model.Action == "Booking" ? "Booked" : "Cancelled")}";
-        
-        rabbitMQService.SendMessage(routingKey, message);
-        
+
+        if (action == "invalid")
+        {
+            var message = "";
+            rabbitMQService.Publish("tour_selection.exchange", routingKey, message);
+        }
+
+        if (action == "submit")
+        {
+            var message = $"Name: {Model.Name}, Email: {Model.Email}, Tour: {Model.Tour}, Action: {(Model.Action == "Booking" ? "Booked" : "Cancelled")}";
+            rabbitMQService.Publish("tour_selection.exchange", routingKey, message);
+        }
+
         return RedirectToPage("Index");
     }
 }
