@@ -16,26 +16,17 @@ public class IndexModel(ILogger<IndexModel> logger,
 
     }
 
-    public IActionResult OnPost(string action)
+    public IActionResult OnPost()
     {
-        if (!ModelState.IsValid)
-        {
-            return Page();
-        }
-
         var routingKey = Model.Action == "Booking" ? "tour.booked" : "tour.cancelled";
-
-        if (action == "invalid")
+        var message = "";
+        
+        if (!Model.InvalidTest)
         {
-            var message = "";
-            rabbitMQService.Publish("tour_selection.exchange", routingKey, message);
+            message = $"Name: {Model.Name}, Email: {Model.Email}, Tour: {Model.Tour}, Action: {(Model.Action == "Booking" ? "Booked" : "Cancelled")}";
         }
-
-        if (action == "submit")
-        {
-            var message = $"Name: {Model.Name}, Email: {Model.Email}, Tour: {Model.Tour}, Action: {(Model.Action == "Booking" ? "Booked" : "Cancelled")}";
-            rabbitMQService.Publish("tour_selection.exchange", routingKey, message);
-        }
+        
+        rabbitMQService.Publish(routingKey, message);
 
         return RedirectToPage("Index");
     }

@@ -40,9 +40,21 @@ services:
     ports:
       - "8081:8081"
 
-  back_office:
+  # back_office:
+  #   build:
+  #     context: ./src/BackOffice
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     rabbitmq:
+  #       condition: service_healthy
+  #   environment:
+  #     - RABBITMQ_HOST=rabbitmq
+  #   ports:
+  #     - "8082:8082"
+
+  admin_app:
     build:
-      context: ./src/BackOffice
+      context: ./src/AdminApp
       dockerfile: Dockerfile
     depends_on:
       rabbitmq:
@@ -50,7 +62,7 @@ services:
     environment:
       - RABBITMQ_HOST=rabbitmq
     ports:
-      - "8082:8082"
+      - "8083:8083"
 
 volumes:
   dpkeys:
