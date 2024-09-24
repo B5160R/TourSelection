@@ -18,7 +18,7 @@ services:
 
   web_app:
     build:
-      context: ./src/FrontEnd
+      context: ./src/Entrypoints/FrontEnd
       dockerfile: Dockerfile
     depends_on:
       rabbitmq:
@@ -30,7 +30,7 @@ services:
 
   email_service:
     build:
-      context: ./src/EmailService
+      context: ./src/Entrypoints/EmailService
       dockerfile: Dockerfile
     depends_on:
       rabbitmq:
@@ -40,21 +40,21 @@ services:
     ports:
       - "8081:8081"
 
-  # back_office:
-  #   build:
-  #     context: ./src/BackOffice
-  #     dockerfile: Dockerfile
-  #   depends_on:
-  #     rabbitmq:
-  #       condition: service_healthy
-  #   environment:
-  #     - RABBITMQ_HOST=rabbitmq
-  #   ports:
-  #     - "8082:8082"
+  back_office:
+    build:
+      context: ./src/Entrypoints/BackOffice
+      dockerfile: Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+    ports:
+      - "8082:8082"
 
   admin_app:
     build:
-      context: ./src/AdminApp
+      context: ./src/Entrypoints/AdminApp
       dockerfile: Dockerfile
     depends_on:
       rabbitmq:

@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Infrastructure.Messaging;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
 
-builder.Services.AddSingleton<RabbitMQService>();
+builder.Services.AddSingleton(new RabbitMQConfig { QueueName = "tour_selection.queue" });
+builder.Services.AddSingleton<IRabbitMq, RabbitMQService>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie();

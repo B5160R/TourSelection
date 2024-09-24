@@ -1,4 +1,5 @@
 using FrontEnd.Pages.ViewModels;
+using Infrastructure.Messaging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -6,7 +7,7 @@ namespace FrontEnd.Pages;
 
 [IgnoreAntiforgeryToken]
 public class IndexModel(ILogger<IndexModel> logger,
-    RabbitMQService rabbitMQService) : PageModel
+    IRabbitMq rabbitMq) : PageModel
 {
     [BindProperty]
     public SubmitViewModel Model { get; set; }
@@ -26,7 +27,7 @@ public class IndexModel(ILogger<IndexModel> logger,
             message = $"Name: {Model.Name}, Email: {Model.Email}, Tour: {Model.Tour}, Action: {(Model.Action == "Booking" ? "Booked" : "Cancelled")}";
         }
         
-        rabbitMQService.Publish(routingKey, message);
+        rabbitMq.Publish(routingKey, message);
 
         return RedirectToPage("Index");
     }
