@@ -18,8 +18,7 @@ services:
 
   web_app:
     build:
-      context: ./src/Entrypoints/FrontEnd
-      dockerfile: Dockerfile
+      dockerfile: src/Entrypoints/FrontEnd/Dockerfile
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -30,8 +29,7 @@ services:
 
   email_service:
     build:
-      context: ./src/Entrypoints/EmailService
-      dockerfile: Dockerfile
+      dockerfile: src/Entrypoints/EmailService/Dockerfile
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -42,8 +40,7 @@ services:
 
   back_office:
     build:
-      context: ./src/Entrypoints/BackOffice
-      dockerfile: Dockerfile
+      dockerfile: src/Entrypoints/BackOffice/Dockerfile
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -54,8 +51,7 @@ services:
 
   admin_app:
     build:
-      context: ./src/Entrypoints/AdminApp
-      dockerfile: Dockerfile
+      dockerfile: src/Entrypoints/AdminApp/Dockerfile
     depends_on:
       rabbitmq:
         condition: service_healthy

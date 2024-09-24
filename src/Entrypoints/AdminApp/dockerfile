@@ -1,26 +1,19 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 
-WORKDIR /app/Infrastructure
+WORKDIR /app
 
-COPY ["src/Infrastructure/Infrastructure.csproj" "./"]
+COPY ["src/Infrastructure/Infrastructure.csproj", "app/Infrastructure/"]
+COPY ["src/Entrypoints/AdminApp/AdminApp.csproj", "app/Entrypoints/AdminApp/"]
 
-RUN dotnet restore 
+RUN dotnet restore  "app/Entrypoints/AdminApp/AdminApp.csproj"
 
-COPY [src/Infrastructure/ ./]
+COPY . .
 
-WORKDIR /app/Entrypoints/AdminApp
-
-COPY *.csproj ./
-
-RUN dotnet restore
-
-COPY . ./
-
-RUN dotnet publish -c Release -o out
+RUN dotnet publish "app/Entrypoints/AdminApp/AdminApp.csproj" -c Release -o out
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 
-WORKDIR /app/Entrypoints/AdminApp
+WORKDIR /app
 
 COPY --from=build-env /app/out .
 
