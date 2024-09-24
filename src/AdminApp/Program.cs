@@ -23,7 +23,7 @@ channel.QueueBind(queue: "invalid_message.queue",
 channel.ExchangeDeclare(exchange: "tour_selection.exchange", 
   type: ExchangeType.Topic);
 
-channel.QueueDeclare(queue: "backoffice.queue",
+channel.QueueDeclare(queue: "tour_selection.queue",
   durable: true,
   exclusive: false,
   autoDelete: false,
@@ -33,45 +33,23 @@ channel.QueueDeclare(queue: "backoffice.queue",
     { "x-dead-letter-routing-key", "" }
   });
 
-channel.QueueBind(queue: "backoffice.queue",
+channel.QueueBind(queue: "invalid_message.queue",
   exchange: "tour_selection.exchange",
-  routingKey: "tour.*");
-
-Console.WriteLine(" [*] Waiting for messages...");
+  routingKey: "");
 
 var consumer = new EventingBasicConsumer(channel);
 consumer.Received += (model, ea) =>
 {
-  var body = ea.Body.ToArray();
-  var message = Encoding.UTF8.GetString(body);
-  var routingKey = ea.RoutingKey;
+    var body = ea.Body.ToArray();
+    var message = Encoding.UTF8.GetString(body);
 
-  try
-  {
-    if (string.IsNullOrEmpty(message))
-    {
-      throw new Exception("processing error.");
-    }
-    else
-    {
-      channel.BasicAck(deliveryTag: ea.DeliveryTag,
-        multiple: false);
-
-      Console.WriteLine($" [x] Received '{routingKey}':'{message}'");
-    }
-  }
-  catch (Exception ex)
-  {
-    channel.BasicNack(deliveryTag: ea.DeliveryTag,
-      requeue: false,
-      multiple: false);
-
-    Console.WriteLine($" [x] Invalid message '{routingKey}':'{message}'");
-  }
+    Console.WriteLine($" [x] Logged Invalid message:'{message}'");
 };
 
-channel.BasicConsume(queue: "backoffice.queue",
-  autoAck: false,
+channel.BasicConsume(queue: "invalid_message.queue",
+  autoAck: true,
   consumer: consumer);
+
+Console.WriteLine(" [*] Waiting for messages to log...");
 
 await Task.Delay(Timeout.Infinite);

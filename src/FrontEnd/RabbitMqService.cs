@@ -1,33 +1,86 @@
-using System.Text;
 using RabbitMQ.Client;
+using System.Text;
 
 public class RabbitMQService
 {
-  private readonly ConnectionFactory Factory;
+  private readonly IConnection _connection;
+  private readonly IModel _channel;
 
   public RabbitMQService()
   {
-    Factory = new ConnectionFactory
+    var factory = new ConnectionFactory
     {
       HostName = "rabbitmq",
       UserName = "guest",
       Password = "guest"
     };
+
+    _connection = factory.CreateConnection();
+    _channel = _connection.CreateModel();
+
+    ConfigureQueuesAndExchanges();
   }
 
-  public void SendMessage(string routingKey, string message)
+  public void Publish(string routingKey, string message)
   {
-    using var connection = Factory.CreateConnection();
-    using var channel = connection.CreateModel();
+    try
+    {
+      var body = Encoding.UTF8.GetBytes(message);
+      IBasicProperties props = _channel.CreateBasicProperties();
+      props.ContentType = "text/plain";
+      props.DeliveryMode = 2;
+      props.Expiration = "10000";
 
-    channel.ExchangeDeclare("tour_selection.exchange", ExchangeType.Topic);
+      _channel.BasicPublish(
+        exchange: "tour_selection.exchange",
+        routingKey: routingKey,
+        basicProperties: null,
+        body: body);
 
-    var body = Encoding.UTF8.GetBytes(message);
-    channel.BasicPublish(exchange: "tour_selection.exchange", 
-      routingKey: routingKey, 
-      basicProperties: null, 
-      body: body);
+      Console.WriteLine($"Sent message: {message}");
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"Failed to publish message: {ex.Message}");
+    }
+  }
+
+  public void Dispose()
+  {
+    _channel?.Dispose();
+    _connection?.Dispose();
+  }
+
+  private void ConfigureQueuesAndExchanges()
+  {
+    _channel.ExchangeDeclare(exchange: "dead_letter.exchange", 
+      type: ExchangeType.Direct);
     
-    Console.WriteLine($"Sent message: {message}");
+    _channel.QueueDeclare(queue: "invalid_message.queue",
+      durable: true,
+      exclusive: false,
+      autoDelete: false,
+      arguments: null);
+    
+    _channel.QueueBind(queue: "invalid_message.queue",
+      exchange: "dead_letter.exchange",
+      routingKey: "");
+    
+    _channel.ExchangeDeclare(exchange: "tour_selection.exchange", 
+      type: ExchangeType.Topic);
+    
+    _channel.QueueDeclare(queue: "tour_selection.queue",
+      durable: true,
+      exclusive: false,
+      autoDelete: false,
+      arguments: new Dictionary<string, object>
+      {
+        { "x-dead-letter-exchange", "dead_letter.exchange" },
+        { "x-dead-letter-routing-key", "" }
+      });
+
+    _channel.QueueBind(queue: "tour_selection.queue",
+      exchange: "tour_selection.exchange",
+      routingKey: "tour.*");
   }
 }

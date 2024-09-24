@@ -10,7 +10,7 @@ public class IndexModel(ILogger<IndexModel> logger,
 {
     [BindProperty]
     public SubmitViewModel Model { get; set; }
-    
+
     public void OnGet()
     {
 
@@ -19,10 +19,15 @@ public class IndexModel(ILogger<IndexModel> logger,
     public IActionResult OnPost()
     {
         var routingKey = Model.Action == "Booking" ? "tour.booked" : "tour.cancelled";
-        var message = $"Name: {Model.Name}, Email: {Model.Email}, Tour: {Model.Tour}, Action: {(Model.Action == "Booking" ? "Booked" : "Cancelled")}";
+        var message = "";
         
-        rabbitMQService.SendMessage(routingKey, message);
+        if (!Model.InvalidTest)
+        {
+            message = $"Name: {Model.Name}, Email: {Model.Email}, Tour: {Model.Tour}, Action: {(Model.Action == "Booking" ? "Booked" : "Cancelled")}";
+        }
         
+        rabbitMQService.Publish(routingKey, message);
+
         return RedirectToPage("Index");
     }
 }

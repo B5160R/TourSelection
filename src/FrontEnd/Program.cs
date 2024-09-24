@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
+
 builder.Services.AddSingleton<RabbitMQService>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -13,6 +14,7 @@ builder.Services.AddAntiforgery(options => options.SuppressXFrameOptionsHeader =
 
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(@"/var/dpkeys/"));
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
